@@ -1,4 +1,7 @@
 //----------------------------------------------------------------------------- Stdlib
+function zip(keys, values) {
+  return Object.fromEntries(keys.map((k, i) => [k, values[i]]));
+}
 function isNotSet(subject) {
   return typeof subject === "undefined" || subject === null;
 }
@@ -209,19 +212,19 @@ const CSV = {
 
 //----------------------------------------------------------------------------- Time
 class Time extends Date {
-  constructor(time) {
+  constructor(time, utc=true) {
     if(IsNumber(time)) {
       super(time * 1000);
     }
-    else if(this.isInterval(time)) {
+    else if(Time.isInterval(time)) {
       super();
       this.setInterval(time);
     }
-    else if(this.isIntervals(time)) {
+    else if(Time.isIntervals(time)) {
       super();
       this.setIntervals(time);
     }
-    else super(time);
+    else super(time + (utc ? "+00:00" : ""));
   }
   getString() {
     return this.getFullYear() + "-" +

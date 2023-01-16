@@ -3,13 +3,13 @@
 /** @jsxFrag JSX.CreateFragment */
 const JSX = {
   CreateElement: (tag, props, ...children) => {
-    if (typeof tag === "function") {
+    if(typeof tag === "function") {
       if(props) return tag(props, ...children);
       return tag({}, ...children);
     }
     const element = document.createElement(tag);
     Object.entries(props || {}).forEach(([name, value]) => {
-      if (name.startsWith("on") && name.toLowerCase() in window) element.addEventListener(name.toLowerCase().substr(2), value);
+      if(name.startsWith("on") && name.toLowerCase() in window) element.addEventListener(name.toLowerCase().substr(2), value);
       else element.setAttribute(name, value.toString());
     });
     children.forEach((child) => {
@@ -18,8 +18,8 @@ const JSX = {
     return element;
   },
   AppendChild: (parent, child) => {
-    if (Array.isArray(child)) child.forEach((nestedChild) => JSX.AppendChild(parent, nestedChild));
-    else parent.appendChild(child.nodeType ? child : document.createTextNode(child));
+    if(Array.isArray(child)) child.forEach((nestedChild) => JSX.AppendChild(parent, nestedChild));
+    else if(child) parent.appendChild(child.nodeType ? child : document.createTextNode(child));
   },
   CreateFragment: (props, ...children) => {
     return children;
@@ -48,9 +48,7 @@ var AJAX = {
     if(props) {
       let form = FormData.prototype.isPrototypeOf(props) ? true : false;
       init.headers = { "Content-Type": (form ? "multipart/form-data" : "text/plain") };
-      //init.headers.Connection = "close";
-      //Connection
-
+      init.mode = "cors"; //
       init.body = form ? props : JSON.stringify(props);
       if(this.printRequest) console.debug(method, url, props);
     } else {
@@ -59,10 +57,10 @@ var AJAX = {
     try {
       const res = await fetch(url, init);
       let data = await res.text();
-      if (this.printResponse) console.debug(method, url, data);
+      if(this.printResponse) console.debug(method, url, data);
       return data;
     } catch (e) {
-      if (this.printError) console.debug(e);
+      if(this.printError) console.debug(e);
       return null;
     }
   },
@@ -77,7 +75,7 @@ var AJAX = {
     try {
       return await JSON.parse(res);
     } catch (e) {
-      if (this.printError) console.debug(method, url, res);
+      if(this.printError) console.debug(method, url, res);
       return null;
     }
   },
@@ -91,7 +89,7 @@ var AJAX = {
   Csv: async function (url, method = "GET", props = null, csvProps = {}) {
     const res = await this.Conn(url, method, props);
     let data = await CSV.parse(res, csvProps);
-    if (this.printResponse) console.debug(method, url, data);
+    if(this.printResponse) console.debug(method, url, data);
     return data;
   },
   /**
@@ -135,7 +133,7 @@ Element.prototype.Clear = function () {
 };
 Element.prototype.Swap = function (content) {
   let clone = this.cloneNode(false);
-  if (Array.isArray(content)) {
+  if(Array.isArray(content)) {
     content.forEach((child) => clone.appendChild(child));
   } else clone.appendChild(content);
   this.Clear();
@@ -145,10 +143,10 @@ Element.prototype.Swap = function (content) {
 Element.prototype.appendChildren = function (children) {
   if(Array.isArray(children)) {
     children.forEach((child) => {
-      this.appendChildren(child);
+      if(child) this.appendChildren(child);
     });
   }
-  else if(children)  this.appendChild(children);  
+  else if(children) this.appendChild(children);  
 }
 Object.prototype.isElement = function () {
   try {
@@ -177,8 +175,8 @@ String.prototype.cssPercentPx = function () {
   let split = this.split(" ");
  
   split.forEach((value) => {
-    if (value.indexOf("%") != -1) percent = Number(value.replace(",", ".").replace(/[^0-9\.]+/g, "")) / 100;
-    else if (value.indexOf("px") != -1) px = Number(value.replace(",", ".").replace(/[^0-9\.]+/g, ""));
+    if(value.indexOf("%") != -1) percent = Number(value.replace(",", ".").replace(/[^0-9\.]+/g, "")) / 100;
+    else if(value.indexOf("px") != -1) px = Number(value.replace(",", ".").replace(/[^0-9\.]+/g, ""));
   });
   return { percent: percent, px: px };
 };
@@ -195,7 +193,7 @@ window.location.get = () => {
 String.prototype.toFile = function (name) {
   let link = document.createElement("a");
   link.setAttribute("target", " _blank");
-  if (Blob !== undefined) {
+  if(Blob !== undefined) {
     let blob = new Blob([this], { type: "text/plain" });
     link.setAttribute("href", URL.createObjectURL(blob));
   } else link.setAttribute("href", "data:text/plain" + "," + encodeURIComponent(text));
@@ -240,10 +238,11 @@ Storage.prototype.getObject = function (key) {
 const Cookie = {
   sec: 1440,
   prefix: "@expires-",
+  secure: true,
   setValue: (key, value, sec = Cookie.sec) => {
     let expires = new Date();
     expires.setTime(expires.getTime() + 1000 * sec);
-    document.cookie = key + "=" + value + ";expires=" + expires.toUTCString() + ";SameSite=None;Secure";
+    document.cookie = key + "=" + value + ";expires=" + expires.toUTCString() + ";SameSite=None;" + (Cookie.secure ? "Secure;" : "");
   },
   getValue: (key) => {
     let key_value = document.cookie.match("(^|;) ?" + key + "=([^;]*)(;|$)");
@@ -258,11 +257,11 @@ const Cookie = {
   },
   getObject: (key) => {
     let object = localStorage.getObject(key);
-    if (!object) return null;
+    if(!object) return null;
     let expires = localStorage.getItem(Cookie.prefix + key);
-    if (expires) {
+    if(expires) {
       let sec = new Date().getTime() / 1000 - expires;
-      if (sec < 0) return object;
+      if(sec < 0) return object;
       localStorage.removeItem(Cookie.prefix + key);
     }
     localStorage.removeItem(key);
@@ -276,10 +275,10 @@ const Cookie = {
     localStorage.clear();
   },
 };
-//Cookie.setValue('value', 1);
-//console.log(Cookie.getValue("value"))
-//localStorage.setObject('object', { 'id': 2, 'name': 'Xaeian' });
-//console.log(localStorage.getObject('object'));
+// Cookie.setValue('value', 1);
+// console.log(Cookie.getValue("value"))
+// localStorage.setObject('object', { 'id': 2, 'name': 'Xaeian' });
+// console.log(localStorage.getObject('object'));
 
 //----------------------------------------------------------------------------- Correct
 String.prototype.CorrectOnkey = function (mode, precision = 3, mathMode = "+") {
@@ -288,18 +287,18 @@ String.prototype.CorrectOnkey = function (mode, precision = 3, mathMode = "+") {
     case "uint":
       str = this.replace(/\D+/g, "");
       str = str.replace(/^0+/g, "0");
-      if (/^0+[1-9]+/.exec(str)) str = str.replace(/^0+/g, "");
+      if(/^0+[1-9]+/.exec(str)) str = str.replace(/^0+/g, "");
       return str;
     case "uint":
       str = this.replace(/[^\d\-]/g, "");
-      if (/^\-+/.exec(str)) {
+      if(/^\-+/.exec(str)) {
         str = str.replace(/\-/g, "");
         minus = "-";
       }
       return minus + str.correct.uint();
     case "int":
       str = this.replace(/[^\d\-]/g, "");
-      if (/^\-+/.exec(str)) {
+      if(/^\-+/.exec(str)) {
         str = str.replace(/\-/g, "");
         minus = "-";
       }
@@ -310,7 +309,7 @@ String.prototype.CorrectOnkey = function (mode, precision = 3, mathMode = "+") {
       str = this.replace(/\.+/g, ".");
       var x = str.split(".", 2);
       x[0] = x[0].correct.uint();
-      if (typeof x[1] == "undefined") str = x[0].toString();
+      if(typeof x[1] == "undefined") str = x[0].toString();
       else {
         x[1] = x[1].substr(0, precision);
         str = x[0].toString() + "." + x[1];
@@ -319,7 +318,7 @@ String.prototype.CorrectOnkey = function (mode, precision = 3, mathMode = "+") {
     case "float":
       str = this.replace(",", ".");
       str = str.replace(/[^\d\.\-]/g, "");
-      if (/^\-+/.exec(str)) {
+      if(/^\-+/.exec(str)) {
         str = str.replace(/\-/g, "");
         minus = "-";
       }
@@ -331,12 +330,12 @@ String.prototype.CorrectOnkey = function (mode, precision = 3, mathMode = "+") {
       var x = str.split("-", 3);
       x[0] = x[0].substr(0, 4);
       str = x[0];
-      if (typeof x[1] != "undefined") {
+      if(typeof x[1] != "undefined") {
         x[1] = x[1].substr(0, 2);
         str += "-" + x[1];
       }
-      if (typeof x[2] != "undefined") {
-        if (x[0].length > 2) x[2] = x[2].substr(0, 2);
+      if(typeof x[2] != "undefined") {
+        if(x[0].length > 2) x[2] = x[2].substr(0, 2);
         else x[2] = x[2].substr(0, 4);
         str += "-" + x[2];
       }
@@ -344,15 +343,15 @@ String.prototype.CorrectOnkey = function (mode, precision = 3, mathMode = "+") {
     case "math":
       str = this.replace(",", ".");
       str = str.replace(/[^0-9\.\+\-\*\/\%]+/g, "");
-      if (mathMode == "-") {
-        if (/^\-+/.exec(str)) {
+      if(mathMode == "-") {
+        if(/^\-+/.exec(str)) {
           str = str.replace(/^\-/g, "");
           minus = "-";
         }
       } else str = str.replace(/^\-/g, "");
       let regex;
       var y = str.match(/[\+\-\*\/]/);
-      if (y != null) {
+      if(y != null) {
         y = y[0];
         regex = new RegExp("\\.\\" + y, "");
         str = str.replace(regex, y);
@@ -361,13 +360,13 @@ String.prototype.CorrectOnkey = function (mode, precision = 3, mathMode = "+") {
         var x = [];
         x[0] = str;
       }
-      if (mode == "-") x[0] = x[0].correct.ufloat();
+      if(mode == "-") x[0] = x[0].correct.ufloat();
       else x[0] = x[0].correct.float();
       str = minus + x[0];
-      if (typeof x[1] != "undefined") {
+      if(typeof x[1] != "undefined") {
         regex = /\%+$/;
         var pc = "";
-        if (regex.exec(x[1])) {
+        if(regex.exec(x[1])) {
           x[1] = x[1].replace(/\%/g, "");
           pc = "%";
         }
@@ -380,14 +379,14 @@ String.prototype.CorrectOnkey = function (mode, precision = 3, mathMode = "+") {
 String.prototype.CorrectOnfocus = function (mode, offset = 0) {
   switch (mode.toLowerCase()) {
     case "date":
-      if (str == "") {
+      if(str == "") {
         var today = new Date();
-        if (offset) today.setDate(today.getDate() + offset);
+        if(offset) today.setDate(today.getDate() + offset);
         var D = today.getDate();
         var M = today.getMonth() + 1;
         var Y = today.getFullYear();
-        if (D < 10) D = "0" + D;
-        if (M < 10) M = "0" + M;
+        if(D < 10) D = "0" + D;
+        if(M < 10) M = "0" + M;
         str = Y + "-" + M + "-" + D;
       }
       return str;
@@ -397,7 +396,7 @@ String.prototype.CorrectOnfocus = function (mode, offset = 0) {
     case "float":
     case "math":
       str = this;
-      if (!parseFloat(this)) str = "";
+      if(!parseFloat(this)) str = "";
       return str;
   }
 };
