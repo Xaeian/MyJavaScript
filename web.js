@@ -197,7 +197,6 @@ String.prototype.toFile = function (name) {
     let blob = new Blob([this], { type: "text/plain" });
     link.setAttribute("href", URL.createObjectURL(blob));
   } else link.setAttribute("href", "data:text/plain" + "," + encodeURIComponent(text));
-
   link.setAttribute("download", name);
   document.body.appendChild(link);
   link.click();
@@ -239,10 +238,11 @@ const Cookie = {
   sec: 1440,
   prefix: "@expires-",
   secure: true,
+  sameSite: "None",
   setValue: (key, value, sec = Cookie.sec) => {
     let expires = new Date();
     expires.setTime(expires.getTime() + 1000 * sec);
-    document.cookie = key + "=" + value + ";expires=" + expires.toUTCString() + ";SameSite=None;" + (Cookie.secure ? "Secure;" : "");
+    document.cookie = key + "=" + value + ";expires=" + expires.toUTCString() + ";SameSite=" + Cookie.sameSite + ";" + (Cookie.secure ? "Secure;" : "");
   },
   getValue: (key) => {
     let key_value = document.cookie.match("(^|;) ?" + key + "=([^;]*)(;|$)");
