@@ -133,9 +133,7 @@ Element.prototype.Clear = function () {
 };
 Element.prototype.Swap = function (content) {
   let clone = this.cloneNode(false);
-  if(Array.isArray(content)) {
-    content.forEach((child) => clone.appendChild(child));
-  } else clone.appendChild(content);
+  clone.appendChildren(content);
   this.Clear();
   this.parentNode.replaceChild(clone, this);
   return clone;
