@@ -27,6 +27,7 @@ const JSX = {
 };
 
 //----------------------------------------------------------------------------- AJAX
+
 var AJAX = {
   printRequest: false,
   printResponse: false,
@@ -48,7 +49,7 @@ var AJAX = {
     if(props) {
       let form = FormData.prototype.isPrototypeOf(props) ? true : false;
       init.headers = { "Content-Type": (form ? "multipart/form-data" : "text/plain") };
-      init.mode = "cors"; //
+      init.mode = "cors";
       init.body = form ? props : JSON.stringify(props);
       if(this.printRequest) console.debug(method, url, props);
     } else {
@@ -88,7 +89,7 @@ var AJAX = {
    */
   Csv: async function (url, method = "GET", props = null, csvProps = {}) {
     const res = await this.Conn(url, method, props);
-    let data = await CSV.parse(res, csvProps);
+    let data = await CSV.parse(res, {...csvProps});
     if(this.printResponse) console.debug(method, url, data);
     return data;
   },
